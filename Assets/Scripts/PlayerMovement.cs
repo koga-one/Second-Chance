@@ -5,6 +5,8 @@ using System;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private bool isDead = false;
+    private bool hasStarted = false;
     private bool tryJump = false;
     private Vector2 axis;
     public Vector2 Axis => axis;
@@ -17,19 +19,43 @@ public class PlayerMovement : MonoBehaviour
     [Header("Jump")]
     [SerializeField] private float jumpSpeed = 5;
 
+    public static Action started;
+
+    void OnEnable()
+    {
+        DeathSystem.onReset += OnReset;
+        Orb.gotOrb += GotOrb;
+    }
+    void OnDisable()
+    {
+        DeathSystem.onReset -= OnReset;
+        Orb.gotOrb -= GotOrb;
+    }
     void Update()
     {
+        if (isDead)
+            return;
+
         // Changed axis
         axis.x = Input.GetAxisRaw("Horizontal");
         axis.y = Input.GetAxisRaw("Vertical");
         // Tried jumping
         if (Input.GetKeyDown(KeyCode.C))
             tryJump = true;
+
+        if (!hasStarted && (axis != Vector2.zero || tryJump))
+        {
+            started?.Invoke();
+            hasStarted = true;
+        }
     }
 
     // Ensure it's constant framerate for good movement
     void FixedUpdate()
     {
+        if (isDead)
+            return;
+
         // For now set it constant
         rb.velocity = new Vector2(axis.x * maxRunSpeed, rb.velocity.y);
 
@@ -44,5 +70,20 @@ public class PlayerMovement : MonoBehaviour
     {
         if (groundChecker.IsGrounded)
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
+    }
+    void OnReset(bool died, bool post)
+    {
+        if (post)
+            isDead = false;
+        else
+        {
+            hasStarted = false;
+            isDead = true;
+            rb.velocity = Vector2.zero;
+        }
+    }
+    void GotOrb(int id)
+    {
+        hasStarted = false;
     }
 }

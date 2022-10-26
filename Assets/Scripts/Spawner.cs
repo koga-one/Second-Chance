@@ -3,91 +3,111 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public enum SpawnerStates { Off, Recording, Replaying }
+/*
+    Waiting => still hasn't been used
+    Recording => is the current spawner and is recording the player moves
+    Playing => has been used and now replays the movements
+
+    Waiting -> Recording -> Playing
+*/
+public enum SpawnerStates { Waiting, Recording, Replaying }
 
 public class Spawner : MonoBehaviour
 {
-    /*
-        Gets
-            ID (int)
-            nextSpawnerID (int, -1 if doesn't have next)
-
-        Spawns the player
-        Records their frames every FixedUpdate (if started)
-            Deletes recording (if dies)
-                Sends back to start
-            Stops recording (if gets orb)
-                Sends message to next spawner ID (if has next spawner ID)
-                Sends message to win system (if doesn't have next spawner ID)
-        Replays the movement (if started (on next spawner))
-            Spawns clone (if isn't spawned)
-    */
-
-    public static Action<int> nextSpawner;
-    public static Action wasLastSpawner;
-
-
-
-    private int ID;
-    private int nextID;
-    private bool started;
-    private bool recorded;
-    private Transform player;
-    private List<Vector2> frames = new List<Vector2>();
+    private SpawnerStates currentState = SpawnerStates.Waiting;
+    private int frame = 0;
     private GameObject clone;
-    private int index;
+    private GameObject player;
+    private List<Vector2> positions = new List<Vector2>();
+    private bool canStart = false;
 
+    [Header("References")]
+    [SerializeField] private GameObject clonePrefab;
+    [SerializeField] private int id;
 
-
-    public void SetupSpawner(int ID_, int nextID_, Transform player_)
+    void Start()
     {
-        ID = ID_;
-        nextID = nextID_;
-        player = player_;
+        player = FindObjectOfType<PlayerMovement>().gameObject;
+
+        if (id == 0)
+        {
+            currentState = SpawnerStates.Recording;
+            player.transform.position = transform.position;
+        }
     }
     void OnEnable()
     {
-        PlayerMovement.started += Started;
-        nextSpawner += CheckIfNextSpawner;
-        DeathSystem.onDeath += DeleteRecording;
-        OrbSystem.gotOrb += TryNextSpawner;
+        PlayerMovement.started += PlayerStarted;
+        DeathSystem.onReset += Reset;
+        Orb.gotOrb += GotOrb;
     }
     void OnDisable()
     {
-        PlayerMovement.started -= Started;
-        nextSpawner -= CheckIfNextSpawner;
-        DeathSystem.onDeath -= DeleteRecording;
-        OrbSystem.gotOrb -= TryNextSpawner;
+        PlayerMovement.started -= PlayerStarted;
+        DeathSystem.onReset -= Reset;
+        Orb.gotOrb -= GotOrb;
+    }
+    void PlayerStarted()
+    {
+        canStart = true;
+
+        if (currentState == SpawnerStates.Replaying)
+        {
+            clone.SetActive(true);
+            clone.transform.position = transform.position;
+        }
+    }
+    void Reset(bool died, bool post)
+    {
+        if (post)
+            return;
+
+        canStart = false;
+
+        if (currentState == SpawnerStates.Recording && died)
+        {
+            positions.Clear();
+            player.transform.position = transform.position;
+        }
+        else if (currentState == SpawnerStates.Replaying)
+        {
+            frame = 0;
+            clone.SetActive(false);
+        }
+    }
+    void GotOrb(int target)
+    {
+        if (id == target)
+        {
+            currentState = SpawnerStates.Recording;
+            player.transform.position = transform.position;
+        }
+        // Disables this spawner bc we got the orb and also spawns the clone
+        else if (currentState == SpawnerStates.Recording)
+        {
+            currentState = SpawnerStates.Replaying;
+
+            clone = Instantiate(clonePrefab);
+            clone.SetActive(false);
+        }
     }
     void FixedUpdate()
     {
-        if (started)
-            Record();
-    }
+        if (!canStart)
+            return;
 
+        // If isCurrent this means we still need to record the player
+        if (currentState == SpawnerStates.Recording)
+            positions.Add(player.transform.localPosition);
+        // Otherwise, play it
+        else if (currentState == SpawnerStates.Replaying)
+        {
+            frame++;
+            if (frame >= positions.Count)
+                frame = 0;
 
+            clone.transform.localPosition = positions[frame];
+        }
 
-    void Started() => started = true;
-    void CheckIfNextSpawner(int targetID) { if (ID == targetID) Spawn(); }
-    void Spawn() { player.position = transform.position; }
-    void Record() { frames.Add(player.position); }
-    void DeleteRecording()
-    {
-        started = false;
-        player.position = transform.position;
-        frames.Clear();
     }
-    void TryNextSpawner()
-    {
-        started = false;
-        if (nextID != -1)
-            nextSpawner?.Invoke(nextID);
-        else
-            wasLastSpawner?.Invoke();
-    }
-    void StartReplay()
-    {
-        clone.SetActive(true);
-    }
-    void Replay() => clone.transform.position = frames[index];
 }
