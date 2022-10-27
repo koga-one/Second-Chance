@@ -15,8 +15,9 @@ public class ProgressionSystem : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Pair[] pairs;
+    [SerializeField] private GameObject player;
 
-    public static Action<Pair> chosePair;
+    public static Action<Spawner, Orb> chosePair;
     public static Action won;
     private int currentPair = 0;
     private int amountDone = 0;
@@ -30,6 +31,10 @@ public class ProgressionSystem : MonoBehaviour
     {
         Orb.gotOrb -= GotOrb;
     }
+    void Start()
+    {
+        player.transform.position = pairs[currentPair].spawner.transform.position;
+    }
     void Update()
     {
         if (playing)
@@ -40,27 +45,12 @@ public class ProgressionSystem : MonoBehaviour
             playing = true;
 
             // Do the playing code
-            chosePair?.Invoke(pairs[currentPair]);
+            chosePair?.Invoke(pairs[currentPair].spawner, pairs[currentPair].orb);
         }
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            // Keep searching for a pair that isn't done
-            while (pairs[currentPair].pairDone)
-            {
-                currentPair--;
-                if (currentPair < 0)
-                    currentPair = pairs.Length - 1;
-            }
-        }
+            NextSpawner(false);
         else if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            while (pairs[currentPair].pairDone)
-            {
-                currentPair++;
-                if (currentPair > pairs.Length - 1)
-                    currentPair = 0;
-            }
-        }
+            NextSpawner(true);
     }
 
     void GotOrb()
@@ -70,8 +60,44 @@ public class ProgressionSystem : MonoBehaviour
 
         // Won!
         if (amountDone == pairs.Length)
+        {
             won?.Invoke();
+            Debug.Log("won!");
+        }
         else
+        {
             playing = false;
+            NextSpawner(true);
+        }
+    }
+
+    void NextSpawner(bool positive)
+    {
+        if (positive)
+        {
+            currentPair++;
+            if (currentPair > pairs.Length - 1)
+                currentPair = 0;
+            while (pairs[currentPair].pairDone)
+            {
+                currentPair++;
+                if (currentPair > pairs.Length - 1)
+                    currentPair = 0;
+            }
+        }
+        else
+        {
+            currentPair--;
+            if (currentPair < 0)
+                currentPair = pairs.Length - 1;
+            while (pairs[currentPair].pairDone)
+            {
+                currentPair--;
+                if (currentPair < 0)
+                    currentPair = pairs.Length - 1;
+            }
+        }
+
+        player.transform.position = pairs[currentPair].spawner.transform.position;
     }
 }

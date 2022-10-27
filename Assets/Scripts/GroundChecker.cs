@@ -5,7 +5,6 @@ using System;
 
 public class GroundChecker : MonoBehaviour
 {
-    [Header("Settings")]
     private int amountGrounded = 0;
     private bool isGrounded;
     public bool IsGrounded => isGrounded;

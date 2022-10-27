@@ -14,6 +14,5 @@ public class BodyCollider : MonoBehaviour
     {
         if (badLayers == (badLayers | 1 << collision.gameObject.layer))
             death?.Invoke();
-
     }
 }

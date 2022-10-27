@@ -5,13 +5,14 @@ using System;
 
 public class PlayerMovement : MonoBehaviour
 {
-    private bool isDead = false;
-    private bool hasStarted = false;
+    private Spawner currentSpawner;
+    private bool isReady = false;
+    private bool wokeUp = false;
     private bool tryJump = false;
     private Vector2 axis;
-    public Vector2 Axis => axis;
 
     [Header("References")]
+    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private GroundChecker groundChecker;
     [Header("Run")]
@@ -21,17 +22,45 @@ public class PlayerMovement : MonoBehaviour
 
     public static Action started;
 
+    void Start()
+    {
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        spriteRenderer.enabled = false;
+    }
     void OnEnable()
     {
-        DeathSystem.onReset += OnReset;
+        ProgressionSystem.won += Won;
+        ProgressionSystem.chosePair += ChosePair;
+        Orb.gotOrb += GotOrb;
+        ResetSystem.onReset += OnReset;
     }
     void OnDisable()
     {
-        DeathSystem.onReset -= OnReset;
+        ProgressionSystem.won -= Won;
+        ProgressionSystem.chosePair -= ChosePair;
+        Orb.gotOrb -= GotOrb;
+        ResetSystem.onReset -= OnReset;
+    }
+    void ChosePair(Spawner spawner, Orb orb)
+    {
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        currentSpawner = spawner;
+
+        // This code is also in ProgressionSystem for now. Doesn't rly matter
+        transform.position = spawner.transform.position;
+        spriteRenderer.enabled = true;
+    }
+    void GotOrb()
+    {
+        rb.velocity = Vector2.zero;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        spriteRenderer.enabled = false;
+        isReady = false;
+        wokeUp = false;
     }
     void Update()
     {
-        if (isDead)
+        if (!isReady)
             return;
 
         // Changed axis
@@ -41,17 +70,17 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.C))
             tryJump = true;
 
-        if (!hasStarted && (axis != Vector2.zero || tryJump))
+        if (!wokeUp && (axis != Vector2.zero || tryJump))
         {
             started?.Invoke();
-            hasStarted = true;
+            wokeUp = true;
         }
     }
 
     // Ensure it's constant framerate for good movement
     void FixedUpdate()
     {
-        if (isDead)
+        if (!isReady)
             return;
 
         // For now set it constant
@@ -69,19 +98,23 @@ public class PlayerMovement : MonoBehaviour
         if (groundChecker.IsGrounded)
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
     }
-    void OnReset(bool died, bool post)
+    void OnReset(ResetType type, bool post)
     {
+        if (type == ResetType.Death || type == ResetType.ManualReset)
+            transform.position = currentSpawner.transform.position;
+
         if (post)
-            isDead = false;
+            isReady = true;
         else
         {
-            hasStarted = false;
-            isDead = true;
+            wokeUp = false;
+            isReady = false;
             rb.velocity = Vector2.zero;
         }
     }
-    void GotOrb(int id)
+    void Won()
     {
-        hasStarted = false;
+        // Just so the player is gone from the screen lol
+        transform.position = Vector3.one * 9999f;
     }
 }

@@ -16,85 +16,84 @@ public class Spawner : MonoBehaviour
 {
     private SpawnerStates currentState = SpawnerStates.Waiting;
     private int frame = 0;
-    private GameObject clone;
     private GameObject player;
     private List<Vector2> positions = new List<Vector2>();
-    private bool canStart = false;
+    private bool wokeUp = false;
 
     [Header("References")]
-    [SerializeField] private GameObject clonePrefab;
+    [SerializeField] private GameObject clone;
 
     void Start()
     {
         player = FindObjectOfType<PlayerMovement>().gameObject;
+        clone.SetActive(false);
     }
     void OnEnable()
     {
+        ProgressionSystem.chosePair += ChosePair;
         PlayerMovement.started += PlayerStarted;
-        DeathSystem.onReset += Reset;
+        ResetSystem.onReset += Reset;
         Orb.gotOrb += GotOrb;
     }
     void OnDisable()
     {
+        ProgressionSystem.chosePair -= ChosePair;
         PlayerMovement.started -= PlayerStarted;
-        DeathSystem.onReset -= Reset;
+        ResetSystem.onReset -= Reset;
         Orb.gotOrb -= GotOrb;
+    }
+    void ChosePair(Spawner spawner, Orb orb)
+    {
+        if (spawner == this)
+            currentState = SpawnerStates.Recording;
     }
     void PlayerStarted()
     {
-        canStart = true;
+        wokeUp = true;
 
         if (currentState == SpawnerStates.Replaying)
         {
-            clone.SetActive(true);
+            frame = 0;
             clone.transform.position = transform.position;
         }
     }
-    void Reset(bool died, bool post)
+    void Reset(ResetType type, bool post)
     {
         if (post)
             return;
 
-        canStart = false;
+        wokeUp = false;
 
-        if (currentState == SpawnerStates.Recording && died)
-        {
+        if (currentState == SpawnerStates.Recording && (type == ResetType.Death || type == ResetType.ManualReset))
             positions.Clear();
-            player.transform.position = transform.position;
-        }
         else if (currentState == SpawnerStates.Replaying)
-        {
-            frame = 0;
-            clone.SetActive(false);
-        }
+            clone.transform.position = transform.position;
     }
     void GotOrb()
     {
-        // Disables this spawner bc we got the orb and also spawns the clone
+        // Sets replaying mode
         if (currentState == SpawnerStates.Recording)
         {
             currentState = SpawnerStates.Replaying;
-
-            clone = Instantiate(clonePrefab);
-            clone.SetActive(false);
+            clone.SetActive(true);
         }
     }
     void FixedUpdate()
     {
-        if (!canStart)
+        if (!wokeUp)
             return;
 
         // If isCurrent this means we still need to record the player
         if (currentState == SpawnerStates.Recording)
-            positions.Add(player.transform.localPosition);
+            positions.Add(player.transform.position);
         // Otherwise, play it
         else if (currentState == SpawnerStates.Replaying)
         {
+            clone.transform.position = positions[frame];
+
             frame++;
             if (frame >= positions.Count)
                 frame = 0;
-
-            clone.transform.localPosition = positions[frame];
         }
 
     }

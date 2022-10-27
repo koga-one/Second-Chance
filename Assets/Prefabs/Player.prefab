@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4ea093c0ed09c04e887db53d1f7eef4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spriteRenderer: {fileID: 4974330335102171136}
   rb: {fileID: 4974330334446138347}
   groundChecker: {fileID: 4974330335338278502}
   maxRunSpeed: 10

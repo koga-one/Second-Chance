@@ -6,33 +6,36 @@ using System;
 public class Orb : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Collider2D col;
 
     // The bool is true if this is the last orb
     public static Action gotOrb;
 
+    void Start()
+    {
+        col.enabled = false;
+    }
     void OnEnable()
     {
-        gotOrb += GotOrb;
+        ProgressionSystem.chosePair += ChosePair;
     }
     void OnDisable()
     {
-        gotOrb -= GotOrb;
+        ProgressionSystem.chosePair -= ChosePair;
     }
     void OnTriggerEnter2D()
     {
-        // Got orb! This means next pair or winning
-        DisableOrb();
-
         gotOrb?.Invoke();
-    }
-    void GotOrb()
-    {
-    }
-    void DisableOrb()
-    {
-        // For now just disables collider
         col.enabled = false;
+    }
+    void ChosePair(Spawner spawner, Orb orb)
+    {
+        if (orb == this)
+            Switcher(true);
+    }
+    void Switcher(bool on)
+    {
+        // For now set the collider to on
+        col.enabled = true;
     }
 }
