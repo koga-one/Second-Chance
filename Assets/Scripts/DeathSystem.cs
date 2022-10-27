@@ -16,15 +16,12 @@ public class DeathSystem : MonoBehaviour
     private void OnEnable()
     {
         BodyCollider.death += CallDeath;
-        Orb.gotOrb += CallReset;
     }
     private void OnDisable()
     {
         BodyCollider.death -= CallDeath;
-        Orb.gotOrb -= CallReset;
     }
     void CallDeath() => StartCoroutine(Reset(true));
-    void CallReset(int id) => StartCoroutine(Reset(false));
     private IEnumerator Reset(bool died)
     {
         onReset?.Invoke(died, false);

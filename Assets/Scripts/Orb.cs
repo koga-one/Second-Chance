@@ -7,20 +7,11 @@ public class Orb : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpriteRenderer spriteRenderer;
-    [SerializeField] private Collider2D collider;
-    [Header("Settings")]
-    [SerializeField] private int id;
-    [SerializeField] private int targetID;
+    [SerializeField] private Collider2D col;
 
     // The bool is true if this is the last orb
-    public static Action won;
-    public static Action<int> gotOrb;
+    public static Action gotOrb;
 
-    void Start()
-    {
-        if (id == 0)
-            spriteRenderer.color = Color.red;
-    }
     void OnEnable()
     {
         gotOrb += GotOrb;
@@ -34,20 +25,14 @@ public class Orb : MonoBehaviour
         // Got orb! This means next pair or winning
         DisableOrb();
 
-        if (targetID != -1)
-            gotOrb?.Invoke(targetID);
-        else
-            won?.Invoke();
-
+        gotOrb?.Invoke();
     }
-    void GotOrb(int target)
+    void GotOrb()
     {
-        // For now just sets color
-        spriteRenderer.color = id == target ? Color.red : Color.white;
     }
     void DisableOrb()
     {
         // For now just disables collider
-        collider.enabled = false;
+        col.enabled = false;
     }
 }

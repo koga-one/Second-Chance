@@ -24,12 +24,10 @@ public class PlayerMovement : MonoBehaviour
     void OnEnable()
     {
         DeathSystem.onReset += OnReset;
-        Orb.gotOrb += GotOrb;
     }
     void OnDisable()
     {
         DeathSystem.onReset -= OnReset;
-        Orb.gotOrb -= GotOrb;
     }
     void Update()
     {

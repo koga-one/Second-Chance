@@ -23,17 +23,10 @@ public class Spawner : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private GameObject clonePrefab;
-    [SerializeField] private int id;
 
     void Start()
     {
         player = FindObjectOfType<PlayerMovement>().gameObject;
-
-        if (id == 0)
-        {
-            currentState = SpawnerStates.Recording;
-            player.transform.position = transform.position;
-        }
     }
     void OnEnable()
     {
@@ -75,15 +68,10 @@ public class Spawner : MonoBehaviour
             clone.SetActive(false);
         }
     }
-    void GotOrb(int target)
+    void GotOrb()
     {
-        if (id == target)
-        {
-            currentState = SpawnerStates.Recording;
-            player.transform.position = transform.position;
-        }
         // Disables this spawner bc we got the orb and also spawns the clone
-        else if (currentState == SpawnerStates.Recording)
+        if (currentState == SpawnerStates.Recording)
         {
             currentState = SpawnerStates.Replaying;
 

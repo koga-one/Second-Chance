@@ -169,7 +169,7 @@ GameObject:
   - component: {fileID: 4974330335102171136}
   - component: {fileID: 4974330335102171139}
   - component: {fileID: 2977628351576574048}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -281,6 +281,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad6f0940d698b7348afd370a2331993a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  badLayers:
+    serializedVersion: 2
+    m_Bits: 640
 --- !u!1 &4974330335338278498
 GameObject:
   m_ObjectHideFlags: 0
@@ -327,9 +330,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03facdfe7ce409d4db7793f11714ec85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  badLayers:
-    serializedVersion: 2
-    m_Bits: 128
 --- !u!50 &4974330335338278497
 Rigidbody2D:
   serializedVersion: 4
