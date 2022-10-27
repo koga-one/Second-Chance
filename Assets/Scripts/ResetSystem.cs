@@ -8,26 +8,41 @@ public enum ResetType { Death, ManualReset, ChosePair }
 
 public class ResetSystem : MonoBehaviour
 {
+    // DESCRIPTION ============================================
+
+    // It's a central hub for calling resets
+
+    // VARIABLES ==============================================
+
+    private bool hasPair = false;
+
+    // ACTIONS ================================================
+
     // bool is if the delay just started or if it'll end
     public static Action<ResetType, bool> onReset;
+
+    // PUBLIC VARIABLES =======================================
 
     [Header("Settings")]
     [SerializeField] private int spawnerDelayFrames;
 
-    private bool hasPair = false;
+    // ACTION SUBSCRIPTIONS ===================================
 
     private void OnEnable()
     {
-        BodyCollider.death += CallDeath;
         ProgressionSystem.chosePair += ChosePair;
         Orb.gotOrb += GotOrb;
+        BodyCollider.death += CallDeath;
     }
     private void OnDisable()
     {
-        BodyCollider.death -= CallDeath;
         ProgressionSystem.chosePair -= ChosePair;
         Orb.gotOrb -= GotOrb;
+        BodyCollider.death -= CallDeath;
     }
+
+    // ACTION FUNCTIONS =======================================
+
     void ChosePair(Spawner spawner, Orb orb)
     {
         hasPair = true;
@@ -46,6 +61,9 @@ public class ResetSystem : MonoBehaviour
 
         onReset?.Invoke(type, true);
     }
+
+    // MONOBEHAVIOUR ==========================================
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
@@ -57,4 +75,10 @@ public class ResetSystem : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.V))
             StartCoroutine(Reset(ResetType.ManualReset));
     }
+
+    // HELPER FUNCTIONS =======================================
+
+
+
+    // (✿◡‿◡) ================================================
 }

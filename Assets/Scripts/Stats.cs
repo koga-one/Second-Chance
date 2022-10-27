@@ -5,13 +5,27 @@ using TMPro;
 
 public class Stats : MonoBehaviour
 {
+    // DESCRIPTION ============================================
+
+    // Keeps track of the player stats for display
+
+    // VARIABLES ==============================================
+
     private bool started = false;
     private int resetCount = 0;
     private float timer;
 
+    // ACTIONS ================================================
+
+
+
+    // PUBLIC VARIABLES =======================================
+
     [Header("References")]
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI deathText;
+
+    // ACTION SUBSCRIPTIONS ===================================
 
     void OnEnable()
     {
@@ -25,8 +39,9 @@ public class Stats : MonoBehaviour
         PlayerMovement.started -= Started;
         Orb.gotOrb -= GotOrb;
     }
-    void Started() => started = true;
-    void GotOrb() => started = false;
+
+    // ACTION FUNCTIONS =======================================
+
     void OnReset(ResetType type, bool post)
     {
         if (post)
@@ -38,6 +53,11 @@ public class Stats : MonoBehaviour
             resetCount++;
         deathText.text = "Resets: " + resetCount.ToString();
     }
+    void Started() => started = true;
+    void GotOrb() => started = false;
+
+    // MONOBEHAVIOUR ==========================================
+
     void FixedUpdate()
     {
         if (started)
@@ -46,4 +66,10 @@ public class Stats : MonoBehaviour
             timerText.text = "Time: " + timer.ToString("00.00");
         }
     }
+
+    // HELPER FUNCTIONS =======================================
+
+
+
+    // (✿◡‿◡) ================================================
 }

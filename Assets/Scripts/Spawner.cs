@@ -14,20 +14,30 @@ public enum SpawnerStates { Waiting, Recording, Replaying }
 
 public class Spawner : MonoBehaviour
 {
+    // DESCRIPTION ============================================
+
+    // The spawner for the clone. It stores frames
+    // and replays them when necessary
+
+    // VARIABLES ==============================================
+
     private SpawnerStates currentState = SpawnerStates.Waiting;
     private int frame = 0;
     private GameObject player;
     private List<Vector2> positions = new List<Vector2>();
     private bool wokeUp = false;
 
+    // ACTIONS ================================================
+
+
+
+    // PUBLIC VARIABLES =======================================
+
     [Header("References")]
     [SerializeField] private GameObject clone;
 
-    void Start()
-    {
-        player = FindObjectOfType<PlayerMovement>().gameObject;
-        clone.SetActive(false);
-    }
+    // ACTION SUBSCRIPTIONS ===================================
+
     void OnEnable()
     {
         ProgressionSystem.chosePair += ChosePair;
@@ -42,6 +52,9 @@ public class Spawner : MonoBehaviour
         ResetSystem.onReset -= Reset;
         Orb.gotOrb -= GotOrb;
     }
+
+    // ACTION FUNCTIONS =======================================
+
     void ChosePair(Spawner spawner, Orb orb)
     {
         if (spawner == this)
@@ -78,6 +91,14 @@ public class Spawner : MonoBehaviour
             clone.SetActive(true);
         }
     }
+
+    // MONOBEHAVIOUR ==========================================
+
+    void Start()
+    {
+        player = FindObjectOfType<PlayerMovement>().gameObject;
+        clone.SetActive(false);
+    }
     void FixedUpdate()
     {
         if (!wokeUp)
@@ -97,4 +118,10 @@ public class Spawner : MonoBehaviour
         }
 
     }
+
+    // HELPER FUNCTIONS =======================================
+
+
+
+    // (✿◡‿◡) ================================================
 }

@@ -5,6 +5,13 @@ using System;
 
 public class ProgressionSystem : MonoBehaviour
 {
+    // DESCRIPTION ============================================
+
+    // Keeps track of the orbs that still need to be caught
+    // Checks if the player won
+
+    // VARIABLES ==============================================
+
     [System.Serializable]
     public struct Pair
     {
@@ -13,15 +20,22 @@ public class ProgressionSystem : MonoBehaviour
         public Orb orb;
     }
 
+    private int currentPair = 0;
+    private int amountDone = 0;
+    private bool playing = false;
+
+    // ACTIONS ================================================
+
+    public static Action<Spawner, Orb> chosePair;
+    public static Action won;
+
+    // PUBLIC VARIABLES =======================================
+
     [Header("References")]
     [SerializeField] private Pair[] pairs;
     [SerializeField] private GameObject player;
 
-    public static Action<Spawner, Orb> chosePair;
-    public static Action won;
-    private int currentPair = 0;
-    private int amountDone = 0;
-    private bool playing = false;
+    // ACTION SUBSCRIPTIONS ===================================
 
     void OnEnable()
     {
@@ -31,6 +45,29 @@ public class ProgressionSystem : MonoBehaviour
     {
         Orb.gotOrb -= GotOrb;
     }
+
+    // ACTION FUNCTIONS =======================================
+
+    void GotOrb()
+    {
+        pairs[currentPair].pairDone = true;
+        amountDone++;
+
+        // Won!
+        if (amountDone == pairs.Length)
+        {
+            won?.Invoke();
+            Debug.Log("won!");
+        }
+        else
+        {
+            playing = false;
+            NextSpawner(true);
+        }
+    }
+
+    // MONOBEHAVIOUR ==========================================
+
     void Start()
     {
         player.transform.position = pairs[currentPair].spawner.transform.position;
@@ -53,23 +90,7 @@ public class ProgressionSystem : MonoBehaviour
             NextSpawner(true);
     }
 
-    void GotOrb()
-    {
-        pairs[currentPair].pairDone = true;
-        amountDone++;
-
-        // Won!
-        if (amountDone == pairs.Length)
-        {
-            won?.Invoke();
-            Debug.Log("won!");
-        }
-        else
-        {
-            playing = false;
-            NextSpawner(true);
-        }
-    }
+    // HELPER FUNCTIONS =======================================
 
     void NextSpawner(bool positive)
     {
@@ -100,4 +121,6 @@ public class ProgressionSystem : MonoBehaviour
 
         player.transform.position = pairs[currentPair].spawner.transform.position;
     }
+
+    // (✿◡‿◡) ================================================
 }
