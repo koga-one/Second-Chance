@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3234359595412990979}
   - component: {fileID: 3234359595412990977}
   - component: {fileID: 3234359595412991006}
+  - component: {fileID: 632878330}
   m_Layer: 8
   m_Name: Orb
   m_TagString: Untagged
@@ -75,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d98fc860edf324a48bbd1fc557205e6f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -99,6 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   col: {fileID: 3234359595412991006}
+  hueChanger: {fileID: 632878330}
 --- !u!58 &3234359595412991006
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -115,3 +117,17 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &632878330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3234359595412990978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 192e83a63bb8f45439bcd5fea347206b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spriteRenderer: {fileID: 3234359595412990979}
+  speed: 0.5

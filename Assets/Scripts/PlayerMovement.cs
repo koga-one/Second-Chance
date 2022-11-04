@@ -103,7 +103,7 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         // Only get inputs if we are ready
-        if (!isReady)
+        if (!isReady || PauseSystem.isPaused)
             return;
 
         // Changed axis

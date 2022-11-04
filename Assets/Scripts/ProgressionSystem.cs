@@ -57,7 +57,6 @@ public class ProgressionSystem : MonoBehaviour
         if (amountDone == pairs.Length)
         {
             won?.Invoke();
-            Debug.Log("won!");
         }
         else
         {
@@ -71,10 +70,12 @@ public class ProgressionSystem : MonoBehaviour
     void Start()
     {
         player.transform.position = pairs[currentPair].spawner.transform.position;
+
+        HighlightPairs(currentPair, true);
     }
     void Update()
     {
-        if (playing)
+        if (playing || PauseSystem.isPaused)
             return;
 
         if (Input.GetKeyDown(KeyCode.C))
@@ -94,6 +95,8 @@ public class ProgressionSystem : MonoBehaviour
 
     void NextSpawner(bool positive)
     {
+        int previousPair = currentPair;
+
         if (positive)
         {
             currentPair++;
@@ -119,7 +122,19 @@ public class ProgressionSystem : MonoBehaviour
             }
         }
 
+        // This means there's only one pair left
+        if (previousPair == currentPair)
+            return;
+
+        HighlightPairs(previousPair, false);
+        HighlightPairs(currentPair, true);
+
         player.transform.position = pairs[currentPair].spawner.transform.position;
+    }
+    void HighlightPairs(int index, bool state)
+    {
+        pairs[index].spawner.HighlightThis(state);
+        pairs[index].orb.HighlightThis(state);
     }
 
     // (✿◡‿◡) ================================================

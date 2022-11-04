@@ -21,6 +21,7 @@ public class Orb : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Collider2D col;
+    [SerializeField] private HueChanger hueChanger;
 
     // ACTION SUBSCRIPTIONS ===================================
 
@@ -41,7 +42,10 @@ public class Orb : MonoBehaviour
     void ChosePair(Spawner spawner, Orb orb)
     {
         if (orb == this)
+        {
             col.enabled = true;
+            hueChanger.enabled = true;
+        }
     }
 
     // MONOBEHAVIOUR ==========================================
@@ -51,6 +55,7 @@ public class Orb : MonoBehaviour
         // We disable the collider as a standard procedure
         // Add visual cues to show it is disabled later
         col.enabled = false;
+        hueChanger.enabled = false;
     }
     // If trigger enter then this MUST mean the player got the orb
     // We disable the collider again
@@ -58,11 +63,15 @@ public class Orb : MonoBehaviour
     {
         gotOrb?.Invoke();
         col.enabled = false;
+        hueChanger.enabled = false;
     }
 
     // HELPER FUNCTIONS =======================================
 
-
+    public void HighlightThis(bool value)
+    {
+        hueChanger.enabled = value;
+    }
 
     // (✿◡‿◡) ================================================
 }

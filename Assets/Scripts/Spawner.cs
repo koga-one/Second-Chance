@@ -35,6 +35,7 @@ public class Spawner : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private GameObject clone;
+    [SerializeField] private HueChanger hueChanger;
 
     // ACTION SUBSCRIPTIONS ===================================
 
@@ -121,7 +122,10 @@ public class Spawner : MonoBehaviour
 
     // HELPER FUNCTIONS =======================================
 
-
+    public void HighlightThis(bool value)
+    {
+        hueChanger.enabled = value;
+    }
 
     // (✿◡‿◡) ================================================
 }
