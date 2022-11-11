@@ -48,10 +48,93 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 4974330335102171136}
+  circleCollider2D: {fileID: 8079379591914001476}
   rb: {fileID: 4974330334446138347}
   groundChecker: {fileID: 4974330335338278502}
-  maxRunSpeed: 10
-  jumpSpeed: 15
+  maxRunSpeed: 13
+  framesToMaxSpeed: 3
+  runCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  maxJumpSpeed: 14
+  framesToMaxJump: 10
+  framesToMinJump: 4
+  jumpCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: -0.30021653
+      outSlope: -1
+      tangentMode: 65
+      weightedMode: 2
+      inWeight: 0
+      outWeight: 0.5229202
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -1
+      outSlope: -9.7533455
+      tangentMode: 5
+      weightedMode: 1
+      inWeight: 0.016977906
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  maxCoyote: 2
+  maxEcho: 7
+  maxFallSpeed: 18
+  framesToMaxFall: 10
+  fallCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.608
+      outSlope: -0.043678157
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.098471984
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1.1580966
+      outSlope: 1.6019615
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0.05942273
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  stickyLayer:
+    serializedVersion: 2
+    m_Bits: 2048
 --- !u!50 &4974330334446138347
 Rigidbody2D:
   serializedVersion: 4
@@ -67,7 +150,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 5
+  m_GravityScale: 0
   m_Material: {fileID: 6200000, guid: 12979aabf7df0e7408e8ee2981d21940, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 0
@@ -83,7 +166,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4974330335102171138}
   - component: {fileID: 4974330335102171136}
-  - component: {fileID: 4974330335102171139}
+  - component: {fileID: 8079379591914001476}
   - component: {fileID: 2977628351576574048}
   - component: {fileID: 2985374532370156641}
   m_Layer: 10
@@ -160,8 +243,8 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!61 &4974330335102171139
-BoxCollider2D:
+--- !u!58 &8079379591914001476
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -174,18 +257,8 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 0.03, y: 0.03}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.96, y: 0.96}
-  m_EdgeRadius: 0
+  m_Radius: 0.48
 --- !u!114 &2977628351576574048
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -213,7 +286,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 192e83a63bb8f45439bcd5fea347206b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isOn: 1
   spriteRenderer: {fileID: 4974330335102171136}
   speed: 0.5
 --- !u!1 &4974330335338278498
@@ -296,7 +368,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -0.6}
+  m_Offset: {x: 0, y: -0.5}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -307,5 +379,5 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.9, y: 0.2}
+  m_Size: {x: 0.9, y: 0.1}
   m_EdgeRadius: 0

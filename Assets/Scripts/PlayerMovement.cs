@@ -12,138 +12,204 @@ public class PlayerMovement : MonoBehaviour
 
     // VARIABLES ==============================================
 
-    private Spawner currentSpawner;
-    private bool isReady = false;
-    private bool wokeUp = false;
-    private bool tryJump = false;
+    private readonly float boxCastPadding = 0.1f;
+    private readonly float angleThreshold = 60f;
+    private int runFrames = 0;
+    private bool isTryingStick = false;
+    private bool isTryingJump = false;
+    private int jumpFrames = 0;
+    private int fallFrames = 0;
+    private int coyoteFrames = 0;
+    private int echoFrames = 0;
     private Vector2 axis;
+    private bool touchingSticky = false;
+    private Vector2 stickyAxis;
+    private Vector2 previousFixedPos;
 
     // ACTIONS ================================================
 
-    public static Action started;
+
 
     // PUBLIC VARIABLES =======================================
 
     [Header("References")]
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private CircleCollider2D circleCollider2D;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private GroundChecker groundChecker;
+
     [Header("Run")]
     [SerializeField] private float maxRunSpeed = 5;
+    [SerializeField] private int framesToMaxSpeed = 3;
+    [SerializeField] private AnimationCurve runCurve;
+
     [Header("Jump")]
-    [SerializeField] private float jumpSpeed = 5;
+    [SerializeField] private float maxJumpSpeed = 5;
+    [SerializeField] private int framesToMaxJump = 10;
+    [SerializeField] private int framesToMinJump = 2;
+    [SerializeField] private AnimationCurve jumpCurve;
+    [SerializeField] private int maxCoyote = 5;
+    [SerializeField] private int maxEcho = 5;
+    [Header("Fall")]
+    [SerializeField] private float maxFallSpeed = 20;
+    [SerializeField] private int framesToMaxFall = 8;
+    [SerializeField] private AnimationCurve fallCurve;
+    [Header("Sticky")]
+    // [SerializeField] private float wallMoveMaxSpeed;
+    // [SerializeField] private int framesToMaxWallMove;
+    [SerializeField] private LayerMask stickyLayer;
+    [SerializeField] private float maxClimbSpeed = 2;
+
 
     // ACTION SUBSCRIPTIONS ===================================
 
     void OnEnable()
     {
-        ProgressionSystem.won += Won;
-        ProgressionSystem.chosePair += ChosePair;
-        Orb.gotOrb += GotOrb;
-        ResetSystem.onReset += OnReset;
+
     }
     void OnDisable()
     {
-        ProgressionSystem.won -= Won;
-        ProgressionSystem.chosePair -= ChosePair;
-        Orb.gotOrb -= GotOrb;
-        ResetSystem.onReset -= OnReset;
+
     }
 
     // ACTION FUNCTIONS =======================================
 
-    void Won()
-    {
-        // Just so the player is gone from the screen lol
-        transform.position = Vector3.one * 9999f;
-    }
-    // Nothing to explain here
-    void ChosePair(Spawner spawner, Orb orb)
-    {
-        currentSpawner = spawner;
 
-        // This code is also in ProgressionSystem for now. Doesn't rly matter
-        transform.position = spawner.transform.position;
-        spriteRenderer.enabled = true;
-    }
-    // Got orb so we change a bunch of stuff
-    // Nothing fancy
-    void GotOrb()
-    {
-        rb.velocity = Vector2.zero;
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        spriteRenderer.enabled = false;
-        isReady = false;
-        wokeUp = false;
-    }
-    void OnReset(ResetType type, bool post)
-    {
-        if (type == ResetType.Death || type == ResetType.ManualReset)
-            transform.position = currentSpawner.transform.position;
-
-        if (post)
-            isReady = true;
-        else
-        {
-            wokeUp = false;
-            isReady = false;
-            rb.velocity = Vector2.zero;
-        }
-    }
 
     // MONOBEHAVIOUR ==========================================
 
-    // Set the player to kinematic bc he shouldn't move yet
-    // Set a better visual cue to show he's disabled laters
-    void Start()
+    private void OnCollisionEnter2D(Collision2D col)
     {
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        spriteRenderer.enabled = false;
+        // For now assuming there's only 1 at a time
+        if (stickyLayer == (stickyLayer | 1 << col.gameObject.layer))
+            touchingSticky = true;
+    }
+    private void OnCollisionExit2D(Collision2D col)
+    {
+        // For now assuming there's only 1 at a time
+        if (stickyLayer == (stickyLayer | 1 << col.gameObject.layer))
+            touchingSticky = false;
     }
     void Update()
     {
-        // Only get inputs if we are ready
-        if (!isReady || PauseSystem.isPaused)
-            return;
-
         // Changed axis
         axis.x = Input.GetAxisRaw("Horizontal");
         axis.y = Input.GetAxisRaw("Vertical");
+
+        // Set the coyote frames
+        if (groundChecker.IsGrounded || isTryingStick)
+            coyoteFrames = maxCoyote;
+
         // Tried jumping
         if (Input.GetKeyDown(KeyCode.C))
-            tryJump = true;
-
-        // Player woke up so we set their bodyType to dynamic
-        if (!wokeUp && (axis != Vector2.zero || tryJump))
+            echoFrames = maxEcho;
+        if (echoFrames > 0 && coyoteFrames > 0)
         {
-            started?.Invoke();
-            wokeUp = true;
-            rb.bodyType = RigidbodyType2D.Dynamic;
+            isTryingJump = true;
+            coyoteFrames = 0;
+            echoFrames = 0;
         }
+        else if (!Input.GetKey(KeyCode.C) && jumpFrames >= framesToMinJump)
+            isTryingJump = false;
+
+        isTryingStick = Input.GetKey(KeyCode.Z) && touchingSticky;
     }
     // Ensure it's constant framerate for good movement
     void FixedUpdate()
     {
-        if (!isReady)
-            return;
+        // Decrease the coyote frames
+        if (coyoteFrames > 0)
+            coyoteFrames--;
 
-        // For now set it constant
-        rb.velocity = new Vector2(axis.x * maxRunSpeed, rb.velocity.y);
+        // Decrease the echo frames
+        if (echoFrames > 0)
+            echoFrames--;
 
-        // Ensure it's on FixedUpdate
-        if (tryJump)
+        // Reset the jump frames immediately
+        if (!isTryingJump)
+            jumpFrames = 0;
+        if (groundChecker.IsGrounded)
+            fallFrames = 0;
+
+        // Ignore that axis
+        if (isTryingStick)
         {
-            tryJump = false;
-            TryJump();
+            rb.velocity = new Vector2(WallJumpFloat(), JumpFloat() + ClimbFloat());
         }
+        // Do the movements normally
+        else
+            rb.velocity = new Vector2(MoveFloat(), JumpFloat() + FallFloat());
+
+        // Perform the sticky logic to check it's direction
+        if (touchingSticky)
+        {
+            RaycastHit2D[] hits = Physics2D.CircleCastAll(previousFixedPos, circleCollider2D.radius + boxCastPadding, Vector2.up, 0, stickyLayer);
+            Vector2 direction = new Vector2();
+
+            for (int i = 0; i < hits.Length; i++)
+                direction += hits[i].point - previousFixedPos;
+
+            direction.x = Mathf.Abs(direction.x) > Mathf.Abs(direction.y) ? direction.x / Mathf.Abs(direction.x) : 0;
+            direction.y = Mathf.Abs(direction.x) > Mathf.Abs(direction.y) ? 0 : direction.y / Mathf.Abs(direction.y);
+
+            stickyAxis = direction;
+        }
+
+        previousFixedPos = transform.position;
     }
 
     // HELPER FUNCTIONS =======================================
-
-    void TryJump()
+    float WallJumpFloat()
     {
-        if (groundChecker.IsGrounded)
-            rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
+
+    }
+    float ClimbFloat()
+    {
+        return maxClimbSpeed * axis.y;
+    }
+    float MoveFloat()
+    {
+        // Decrease
+        if (axis.x == 0 && runFrames != 0)
+            runFrames -= runFrames / Mathf.Abs(runFrames);
+        // Run frames isn't 0 and they're different directions
+        else if (axis.x != 0 && runFrames * axis.x < 0)
+            runFrames = 0;
+        // Maybe run frames is 0 or they're same diretion => logic is the same
+        else if (axis.x != 0 && Mathf.Abs(runFrames) < framesToMaxSpeed)
+            runFrames += (int)(axis.x / Mathf.Abs(axis.x));
+
+        return runCurve.Evaluate(Mathf.Abs(runFrames) / (float)framesToMaxSpeed) * maxRunSpeed * (runFrames < 0 ? -1 : 1);
+    }
+    // Vector2 KickVector()
+    // {
+    //     Vector2 result = new Vector2();
+
+    //     // Going up and down
+    //     result.y = axis.y * maxClimbSpeed;
+
+    //     return result;
+    // }
+    float JumpFloat()
+    {
+        // Isn't jumping
+        if (!isTryingJump || jumpFrames > framesToMaxJump)
+            return 0;
+
+        jumpFrames++;
+
+        return jumpCurve.Evaluate(jumpFrames / framesToMaxJump) * maxJumpSpeed;
+    }
+    float FallFloat()
+    {
+        // Is jumping
+        if (isTryingJump && jumpFrames <= framesToMaxJump)
+            return 0;
+
+        if (fallFrames < framesToMaxFall)
+            fallFrames++;
+
+        return fallCurve.Evaluate(fallFrames / (float)framesToMaxFall) * maxFallSpeed * -1;
     }
 
     // (✿◡‿◡) ================================================
