@@ -8,12 +8,14 @@ public class PlayerMovement : MonoBehaviour
     // DESCRIPTION ============================================
 
     // The movement script
-    // Improve the movement later!
+    // It listens to inputs
+    // It also stores data from the environment
+    // It runs the inputs through the active modules
+    // The modules might also use the data from the environment to make decisions
+    // They all input Vector2s that will directly affect the velocity of the player
 
     // VARIABLES ==============================================
 
-    private readonly float boxCastPadding = 0.1f;
-    private readonly float angleThreshold = 60f;
     private int runFrames = 0;
     private bool isTryingJump = false;
     private int jumpFrames = 0;
