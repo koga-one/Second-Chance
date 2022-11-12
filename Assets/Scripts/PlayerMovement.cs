@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+public enum MovementType { Normal, Sticky }
+
 public class PlayerMovement : MonoBehaviour
 {
     // DESCRIPTION ============================================
@@ -16,17 +18,25 @@ public class PlayerMovement : MonoBehaviour
 
     // VARIABLES ==============================================
 
+    private bool hasStarted = false;
+    private MovementType currentMovement = MovementType.Normal;
+    private bool isJumping = false;
+    // The current stage of the run
     private int runFrames = 0;
-    private bool isTryingJump = false;
+    // The current stage of the jump
     private int jumpFrames = 0;
+    // The current stage of the fall
     private int fallFrames = 0;
+    // Allows players to jump even after leaving the ground
     private int coyoteFrames = 0;
+    // Allows players to jump even if they press space too early
     private int echoFrames = 0;
+    // The arrow keys current value
     private Vector2 axis;
 
     // ACTIONS ================================================
 
-
+    public static Action started;
 
     // PUBLIC VARIABLES =======================================
 
@@ -56,14 +66,7 @@ public class PlayerMovement : MonoBehaviour
 
     // ACTION SUBSCRIPTIONS ===================================
 
-    void OnEnable()
-    {
 
-    }
-    void OnDisable()
-    {
-
-    }
 
     // ACTION FUNCTIONS =======================================
 
@@ -84,17 +87,41 @@ public class PlayerMovement : MonoBehaviour
         // Tried jumping
         if (Input.GetKeyDown(KeyCode.C))
             echoFrames = maxEcho;
+
         if (echoFrames > 0 && coyoteFrames > 0)
         {
-            isTryingJump = true;
+            isJumping = true;
             coyoteFrames = 0;
             echoFrames = 0;
         }
+        // Deactivates the jump only when the player stops holding and they got the min jump height
         else if (!Input.GetKey(KeyCode.C) && jumpFrames >= framesToMinJump)
-            isTryingJump = false;
+            isJumping = false;
+
+        if (!hasStarted && (axis != Vector2.zero || Input.GetKeyDown(KeyCode.C)))
+        {
+            hasStarted = true;
+            started?.Invoke();
+        }
     }
     // Ensure it's constant framerate for good movement
     void FixedUpdate()
+    {
+        FramesUpdate();
+
+        // Do the movements normally
+        switch (currentMovement)
+        {
+            case MovementType.Normal:
+            default:
+                rb.velocity = new Vector2(MoveFloat(), JumpFloat() + FallFloat());
+                break;
+        }
+    }
+
+    // HELPER FUNCTIONS =======================================
+
+    void FramesUpdate()
     {
         // Decrease the coyote frames
         if (coyoteFrames > 0)
@@ -105,16 +132,13 @@ public class PlayerMovement : MonoBehaviour
             echoFrames--;
 
         // Reset the jump frames immediately
-        if (!isTryingJump)
+        if (!isJumping)
             jumpFrames = 0;
+
+        // Rset the fall frames immediately
         if (groundChecker.IsGrounded)
             fallFrames = 0;
-
-        // Do the movements normally
-        rb.velocity = new Vector2(MoveFloat(), JumpFloat() + FallFloat());
     }
-
-    // HELPER FUNCTIONS =======================================
     float MoveFloat()
     {
         // Decrease
@@ -129,19 +153,10 @@ public class PlayerMovement : MonoBehaviour
 
         return runCurve.Evaluate(Mathf.Abs(runFrames) / (float)framesToMaxSpeed) * maxRunSpeed * (runFrames < 0 ? -1 : 1);
     }
-    // Vector2 KickVector()
-    // {
-    //     Vector2 result = new Vector2();
-
-    //     // Going up and down
-    //     result.y = axis.y * maxClimbSpeed;
-
-    //     return result;
-    // }
     float JumpFloat()
     {
         // Isn't jumping
-        if (!isTryingJump || jumpFrames > framesToMaxJump)
+        if (!isJumping || jumpFrames > framesToMaxJump)
             return 0;
 
         jumpFrames++;
@@ -151,7 +166,7 @@ public class PlayerMovement : MonoBehaviour
     float FallFloat()
     {
         // Is jumping
-        if (isTryingJump && jumpFrames <= framesToMaxJump)
+        if (isJumping && jumpFrames <= framesToMaxJump)
             return 0;
 
         if (fallFrames < framesToMaxFall)
