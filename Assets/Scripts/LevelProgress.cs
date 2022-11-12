@@ -20,6 +20,10 @@ public class LevelProgress : MonoBehaviour
     private int index;
     private Spawner[] allSpawners;
 
+    // PUBLIC VARIABLES =======================================
+
+
+
     // ACTIONS ================================================
 
     public static Action reset;
@@ -28,7 +32,7 @@ public class LevelProgress : MonoBehaviour
     public static Action won;
     public static Action<int> increaseReplay;
 
-    // PUBLIC VARIABLES =======================================
+    // INSPECTOR VARIABLES ====================================
 
     [Header("References")]
     [SerializeField] private Transform spawnersParent;

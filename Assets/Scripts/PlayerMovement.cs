@@ -37,11 +37,15 @@ public class PlayerMovement : MonoBehaviour
     // The arrow keys current value
     private Vector2 axis;
 
+    // PUBLIC VARIABLES =======================================
+
+
+
     // ACTIONS ================================================
 
     public static Action started;
 
-    // PUBLIC VARIABLES =======================================
+    // INSPECTOR VARIABLES ====================================
 
     [Header("References")]
     [SerializeField] private SpriteRenderer spriteRenderer;

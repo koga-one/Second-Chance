@@ -13,11 +13,14 @@ public class DeathChecker : MonoBehaviour
 
 
 
+    // PUBLIC VARIABLES =======================================
+
+
     // ACTIONS ================================================
 
     public static Action died;
 
-    // PUBLIC VARIABLES =======================================
+    // INSPECTOR VARIABLES ====================================
 
     [Header("Settings")]
     [SerializeReference] private LayerMask badLayers;

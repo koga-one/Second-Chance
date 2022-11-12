@@ -14,11 +14,15 @@ public class HueChanger : MonoBehaviour
     private float current;
     private Color initialColor;
 
+    // PUBLIC VARIABLES =======================================
+
+
+
     // ACTIONS ================================================
 
 
 
-    // PUBLIC VARIABLES =======================================
+    // INSPECTOR VARIABLES ====================================
 
     [Header("References")]
     [SerializeField] private SpriteRenderer spriteRenderer;

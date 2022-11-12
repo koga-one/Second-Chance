@@ -15,11 +15,15 @@ public class GroundChecker : MonoBehaviour
     private bool isGrounded;
     public bool IsGrounded => isGrounded;
 
+    // PUBLIC VARIABLES =======================================
+
+
+
     // ACTIONS ================================================
 
 
 
-    // PUBLIC VARIABLES =======================================
+    // INSPECTOR VARIABLES ====================================
 
 
 

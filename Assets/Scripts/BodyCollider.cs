@@ -13,11 +13,15 @@ public class BodyCollider : MonoBehaviour
 
 
 
+    // PUBLIC VARIABLES =======================================
+
+
+
     // ACTIONS ================================================
 
     public static Action death;
 
-    // PUBLIC VARIABLES =======================================
+    // INSPECTOR VARIABLES ====================================
 
     [Header("Settings")]
     [SerializeField] private LayerMask badLayers;
