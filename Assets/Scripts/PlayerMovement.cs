@@ -18,6 +18,9 @@ public class PlayerMovement : MonoBehaviour
 
     // VARIABLES ==============================================
 
+    private readonly float startThreshold = 0.1f;
+    private bool spawned = false;
+    private Vector3 startPosition;
     private bool hasStarted = false;
     private MovementType currentMovement = MovementType.Normal;
     private bool isJumping = false;
@@ -66,16 +69,56 @@ public class PlayerMovement : MonoBehaviour
 
     // ACTION SUBSCRIPTIONS ===================================
 
-
+    private void OnEnable()
+    {
+        LevelProgress.spawned += Spawned;
+        DeathChecker.died += Died;
+        LevelProgress.reset += Died;
+        LevelProgress.nextOrb += NextOrb;
+        LevelProgress.won += Won;
+    }
+    private void OnDisable()
+    {
+        LevelProgress.spawned -= Spawned;
+        DeathChecker.died -= Died;
+        LevelProgress.reset -= Died;
+        LevelProgress.nextOrb -= NextOrb;
+        LevelProgress.won -= Won;
+    }
 
     // ACTION FUNCTIONS =======================================
 
+    void Spawned(Spawner spawner, int ignore)
+    {
+        spawned = true;
 
+        startPosition = spawner.transform.position;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+    }
+    void Died()
+    {
+        spawned = false;
+        hasStarted = false;
+
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.velocity = Vector2.zero;
+
+        FramesReset();
+    }
+    // For now, getting an orb is the same thing as dying lol
+    void NextOrb() => Died();
+    void Won()
+    {
+        gameObject.SetActive(false);
+    }
 
     // MONOBEHAVIOUR ==========================================
 
     void Update()
     {
+        if (!spawned)
+            return;
+
         // Changed axis
         axis.x = Input.GetAxisRaw("Horizontal");
         axis.y = Input.GetAxisRaw("Vertical");
@@ -98,7 +141,7 @@ public class PlayerMovement : MonoBehaviour
         else if (!Input.GetKey(KeyCode.C) && jumpFrames >= framesToMinJump)
             isJumping = false;
 
-        if (!hasStarted && (axis != Vector2.zero || Input.GetKeyDown(KeyCode.C)))
+        if (!hasStarted && Vector2.Distance(transform.position, startPosition) >= startThreshold)
         {
             hasStarted = true;
             started?.Invoke();
@@ -107,6 +150,9 @@ public class PlayerMovement : MonoBehaviour
     // Ensure it's constant framerate for good movement
     void FixedUpdate()
     {
+        if (!spawned)
+            return;
+
         FramesUpdate();
 
         // Do the movements normally
@@ -138,6 +184,14 @@ public class PlayerMovement : MonoBehaviour
         // Rset the fall frames immediately
         if (groundChecker.IsGrounded)
             fallFrames = 0;
+    }
+    void FramesReset()
+    {
+        runFrames = 0;
+        coyoteFrames = 0;
+        echoFrames = 0;
+        jumpFrames = 0;
+        fallFrames = 0;
     }
     float MoveFloat()
     {

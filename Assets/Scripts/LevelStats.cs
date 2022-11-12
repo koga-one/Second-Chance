@@ -25,15 +25,23 @@ public class LevelStats : MonoBehaviour
     private void OnEnable()
     {
         PlayerMovement.started += Started;
+        DeathChecker.died += Died;
+        LevelProgress.reset += Died;
     }
     private void OnDisable()
     {
         PlayerMovement.started -= Started;
+        DeathChecker.died -= Died;
+        LevelProgress.reset -= Died;
     }
 
     // ACTION FUNCTIONS =======================================
 
     void Started()
+    {
+
+    }
+    void Died()
     {
 
     }

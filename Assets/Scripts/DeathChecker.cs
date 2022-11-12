@@ -1,18 +1,46 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class DeathChecker : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    // DESCRIPTION ============================================
+
+    // The player death checker. Mostly OnCollision stuff
+
+    // VARIABLES ==============================================
+
+
+
+    // ACTIONS ================================================
+
+    public static Action died;
+
+    // PUBLIC VARIABLES =======================================
+
+    [Header("Settings")]
+    [SerializeReference] private LayerMask badLayers;
+
+    // ACTION SUBSCRIPTIONS ===================================
+
+
+
+    // ACTION FUNCTIONS =======================================
+
+
+
+    // MONOBEHAVIOUR ==========================================
+
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        
+        if (badLayers == (badLayers | 1 << other.gameObject.layer))
+            died?.Invoke();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    // HELPER FUNCTIONS =======================================
+
+
+
+    // (✿◡‿◡) ================================================
 }

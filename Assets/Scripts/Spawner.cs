@@ -13,16 +13,26 @@ public class Spawner : MonoBehaviour
 
     // VARIABLES ==============================================
 
+    // When was this spawner played?
+    private int index = 0;
+    private int frame = 0;
+    private Coroutine playback;
+    private Coroutine record;
     private GameObject playerRef;
+    private bool won = false;
     private bool started = false;
-    private SpawnerMode mode = SpawnerMode.Waiting;
     private List<Vector2> pos = new List<Vector2>();
+    private SpawnerMode mode = SpawnerMode.Waiting;
+
+    // PUBLIC VARIABLES =======================================
+
+    public SpawnerMode Mode => mode;
 
     // ACTIONS ================================================
 
+    public static Action<int> finishedReplay;
 
-
-    // PUBLIC VARIABLES =======================================
+    // INSPECTOR VARIABLES ====================================
 
     [Header("References")]
     [SerializeField] private GameObject clone;
@@ -31,15 +41,35 @@ public class Spawner : MonoBehaviour
 
     private void OnEnable()
     {
+        LevelProgress.spawned += Spawned;
         PlayerMovement.started += Started;
+        DeathChecker.died += Died;
+        LevelProgress.reset += Died;
+        LevelProgress.nextOrb += Died;
+        LevelProgress.won += Won;
+        LevelProgress.increaseReplay += IncreaseReplay;
     }
     private void OnDisable()
     {
+        LevelProgress.spawned -= Spawned;
         PlayerMovement.started -= Started;
+        DeathChecker.died -= Died;
+        LevelProgress.reset -= Died;
+        LevelProgress.nextOrb -= Died;
+        LevelProgress.won -= Won;
+        LevelProgress.increaseReplay -= IncreaseReplay;
     }
 
     // ACTION FUNCTIONS =======================================
 
+    void Spawned(Spawner spawner, int newIndex)
+    {
+        if (spawner != this)
+            return;
+
+        mode = SpawnerMode.Recording;
+        index = newIndex;
+    }
     void Started()
     {
         started = true;
@@ -47,14 +77,46 @@ public class Spawner : MonoBehaviour
         switch (mode)
         {
             case SpawnerMode.Recorded:
-                StartCoroutine(PlayBack());
+                playback = StartCoroutine(PlayBack());
                 break;
             case SpawnerMode.Recording:
-                StartCoroutine(Record());
+                record = StartCoroutine(Record());
                 break;
             default:
                 break;
         }
+    }
+    void Died()
+    {
+        started = false;
+
+        OnModeStop();
+    }
+    // Shows the recordings one by one just like the player did it
+    void Won()
+    {
+        won = true;
+
+        OnModeStop();
+
+        if (index == 0)
+            playback = StartCoroutine(PlayBack());
+    }
+    void IncreaseReplay(int otherIndex)
+    {
+        if (otherIndex == 0)
+        {
+            StopCoroutine(playback);
+            frame = 0;
+
+            clone.SetActive(false);
+            clone.transform.position = transform.position;
+        }
+
+        if (index < otherIndex)
+            frame = 0;
+        else if (index == otherIndex)
+            playback = StartCoroutine(PlayBack());
     }
 
     // MONOBEHAVIOUR ==========================================
@@ -66,17 +128,45 @@ public class Spawner : MonoBehaviour
 
     // HELPER FUNCTIONS =======================================
 
+    // Executed when we should stop a mode
+    // (and possibly switch to another)
+    void OnModeStop()
+    {
+        switch (mode)
+        {
+            case SpawnerMode.Recorded:
+                StopCoroutine(playback);
+                frame = 0;
+
+                clone.SetActive(false);
+                clone.transform.position = transform.position;
+                break;
+            case SpawnerMode.Recording:
+                mode = SpawnerMode.Recorded;
+
+                StopCoroutine(record);
+                break;
+            default:
+                break;
+        }
+    }
     // Plays back the clone
     IEnumerator PlayBack()
     {
-        int frame = 0;
-        while (started)
+        clone.SetActive(true);
+
+        while (started || won)
         {
             clone.transform.position = pos[frame];
 
             frame++;
             if (frame >= pos.Count)
+            {
+                if (won)
+                    finishedReplay?.Invoke(index);
+
                 frame = 0;
+            }
 
             yield return new WaitForFixedUpdate();
         }
